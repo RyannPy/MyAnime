@@ -1,11 +1,21 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../services/supabase";
+import {
+  getAnimes,
+  createAnime,
+  updateAnime,
+  deleteAnimeById,
+} from "../services/animeServices";
 
 const AddAnime = () => {
   const [title, setTitle] = useState("");
   const [rating, setRating] = useState("");
   const [review, setReview] = useState("");
   const [list, setList] = useState([]);
+
+  const [editId, setEditId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editRating, setEditRating] = useState("");
+  const [editReview, setEditReview] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -20,13 +30,10 @@ const AddAnime = () => {
   const fetchAnimes = async () => {
     setLoading(true);
 
-    const { data, error: dbError } = await supabase
-      .from("animes")
-      .select("*")
-      .order("id", { ascending: false });
+    const { data, error } = await getAnimes();
 
-    if (dbError) {
-      console.log(dbError);
+    if (error) {
+      console.log(error);
       setLoading(false);
       return;
     }
@@ -44,16 +51,14 @@ const AddAnime = () => {
       return;
     }
 
-    const { error: dbError } = await supabase.from("animes").insert([
-      {
-        title,
-        rating: parseFloat(rating),
-        review,
-      },
-    ]);
+    const { error } = await createAnime({
+      title,
+      rating: parseFloat(rating),
+      review
+    })
 
-    if (dbError) {
-      console.log(dbError);
+    if (error) {
+      console.log(error);
     }
 
     setTitle("");
@@ -64,15 +69,37 @@ const AddAnime = () => {
     fetchAnimes();
   };
 
-  const deleteAnime = async (id) => {
-    await supabase
-    .from("animes")
-    .delete()
-    .eq("id", id);
+  const editAnime = (item) => {
+    setEditId(item.id);
+    setEditTitle(item.title);
+    setEditRating(item.rating);
+    setEditReview(item.review);
+  };
 
+  const saveEdit = async () => {
+    const { error } = await updateAnime(editId, {
+      title: editTitle,
+      rating: parseFloat(editRating),
+      review: editReview
+    });
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    setEditId(null);
+    setEditTitle("");
+    setEditRating("");
+    setEditReview("");
 
     fetchAnimes();
-  }
+  };
+
+  const deleteAnime = async (id) => {
+    await deleteAnimeById(id);
+    fetchAnimes();
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -108,10 +135,33 @@ const AddAnime = () => {
       ) : (
         list.map((item) => (
           <div key={item.id}>
-            <span>{item.title}</span>
-            <span>{item.rating}</span>
-            <span>{item.review}</span>
-            <button onClick={() => deleteAnime(item.id)}>Hapus</button>
+            {editId === item.id ? (
+              <>
+                <input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
+                <input
+                  type="number"
+                  value={editRating}
+                  onChange={(e) => setEditRating(e.target.value)}
+                />
+                <input
+                  value={editReview}
+                  onChange={(e) => setEditReview(e.target.value)}
+                />
+                <button onClick={() => setEditId(null)}>Cancel</button>
+                <button onClick={() => saveEdit()}>Save</button>
+              </>
+            ) : (
+              <>
+                <span>{item.title}</span>
+                <span>{item.rating}</span>
+                <span>{item.review}</span>
+                <button onClick={() => editAnime(item)}>Edit</button>
+                <button onClick={() => deleteAnime(item.id)}>Hapus</button>
+              </>
+            )}
           </div>
         ))
       )}
