@@ -64,6 +64,16 @@ const AddAnime = () => {
     fetchAnimes();
   };
 
+  const deleteAnime = async (id) => {
+    await supabase
+    .from("animes")
+    .delete()
+    .eq("id", id);
+
+
+    fetchAnimes();
+  }
+
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <h1>Add Anime</h1>
@@ -97,11 +107,12 @@ const AddAnime = () => {
         <p>Belum ada Anime</p>
       ) : (
         list.map((item) => (
-          <>
+          <div key={item.id}>
             <span>{item.title}</span>
             <span>{item.rating}</span>
             <span>{item.review}</span>
-          </>
+            <button onClick={() => deleteAnime(item.id)}>Hapus</button>
+          </div>
         ))
       )}
     </div>
