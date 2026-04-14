@@ -1,42 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import AnimeCard from "../components/AnimeCard";
 import StatsCard from "../features/StatsCard";
 import AddAnime from "../features/AddAnime";
+import AnimeModal from "../components/AnimeModal";
+import { getAnimesWithGenres } from "../services/animeServices";
+import { getCurrentUser } from "../services/authServices";
+import { useNavigate } from "react-router-dom";
 
-const dummyAnimes = [
-  {
-    id: 1,
-    title: "Attack on Titan",
-    rating: 9.5,
-    review: "Storynya sangat dalam dan penuh plot twist yang membuat penonton selalu penasaran.",
-    image_url: "https://via.placeholder.com/400x280",
-  },
-  {
-    id: 2,
-    title: "Naruto",
-    rating: 8.7,
-    review: "Perjalanan ninja yang penuh emosi dan perjuangan, serta karakter-karakter ikonik.",
-    image_url: "https://via.placeholder.com/400x280",
-  },
-  {
-    id: 3,
-    title: "One Piece",
-    rating: 9.8,
-    review: "Petualangan panjang dengan world building luar biasa dan cerita yang terus berkembang.",
-    image_url: "https://via.placeholder.com/400x280",
-  },
-  {
-    id: 4,
-    title: "Demon Slayer",
-    rating: 9.1,
-    review: "Visual memukau dan cerita keluarga yang kuat membuat pengalaman menonton makin berkesan.",
-    image_url: "https://via.placeholder.com/400x280",
-  },
-];
 
 function Dashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [animes, setAnimes] = useState([]);
+  const [loadingAnimes, setLoadingAnimes] = useState(false);
+  const [selectedAnime, setSelectedAnime] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
+    fetchLatest();
+
+    const handler = () => fetchLatest();
+    window.addEventListener("animesChanged", handler);
+    return () => window.removeEventListener("animesChanged", handler);
+  }, []);
+
+  const fetchLatest = async () => {
+    setLoadingAnimes(true);
+    const user = await getCurrentUser();
+    if (!user) return setLoadingAnimes(false);
+    const { data, error } = await getAnimesWithGenres(user.id, 4);
+    if (error) {
+      console.error(error);
+      setLoadingAnimes(false);
+      return;
+    }
+    setAnimes(data || []);
+    setLoadingAnimes(false);
+  };
 
   const statsData = [
     {
@@ -150,16 +152,34 @@ function Dashboard() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {dummyAnimes.map((anime) => (
-              <AnimeCard
-                key={anime.id}
-                title={anime.title}
-                rating={anime.rating}
-                review={anime.review}
-                image_url={anime.image_url}
-              />
-            ))}
+            {loadingAnimes ? (
+              <div className="col-span-4 text-center text-slate-500">Loading...</div>
+            ) : (
+              animes.map((anime) => (
+                <AnimeCard
+                  key={anime.id}
+                  anime={anime}
+                  onClick={(a) => { setSelectedAnime(a); setShowModal(true); }}
+                />
+              ))
+            )}
           </div>
+          <div className="mt-4 flex justify-end">
+            <button onClick={() => navigate('/animes')} className="inline-flex items-center gap-2 text-sm text-blue-600">
+              Lihat Semua →
+            </button>
+          </div>
+          <AnimeModal
+            anime={selectedAnime}
+            isOpen={showModal}
+            onClose={() => setShowModal(false)}
+            onEdit={(item) => {
+              // open AddAnime and prefill via custom event
+              setShowAddForm(true);
+              setTimeout(() => window.dispatchEvent(new CustomEvent('openEditAnime', { detail: item })), 100);
+            }}
+            onDeleted={() => fetchLatest()}
+          />
         </section>
       </main>
     </div>

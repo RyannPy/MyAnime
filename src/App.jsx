@@ -1,4 +1,5 @@
 import Dashboard from "./pages/Dashboard";
+import AnimeList from "./pages/AnimeList";
 import Auth from "./pages/Auth";
 import "./App.css";
 
@@ -20,6 +21,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/animes"
+          element={
+            <ProtectedRoute>
+              <AnimeList />
             </ProtectedRoute>
           }
         />

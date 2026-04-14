@@ -1,7 +1,9 @@
 /* eslint-disable react-hooks/immutability */
 import { useState, useEffect } from "react";
 import { getGenres } from "../services/genreServices";
+// eslint-disable-next-line no-unused-vars
 import { addAnimeGenres, uploadImage } from "../services/animeServices";
+import ImageUpload from "../components/ImageUpload";
 
 // CRUD
 import {
@@ -9,6 +11,7 @@ import {
   createAnime,
   updateAnime,
   deleteAnimeById,
+  setAnimeGenres,
 } from "../services/animeServices";
 
 // AUTH
@@ -20,9 +23,7 @@ const AddAnime = () => {
   const [review, setReview] = useState("");
   const [list, setList] = useState([]);
   const [editId, setEditId] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editRating, setEditRating] = useState("");
-  const [editReview, setEditReview] = useState("");
+  const [existingImageUrl, setExistingImageUrl] = useState(null);
   const [genres, setGenres] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [image, setImage] = useState(null);
@@ -34,6 +35,24 @@ const AddAnime = () => {
     fetchGenres();
     fetchAnimes();
    
+  }, []);
+
+  // If parent passes prefill via window (Dashboard will set prefillAnime state and pass here via prop if wired),
+  // this file also supports an external prefill through a global custom event.
+  useEffect(() => {
+    const handler = (e) => {
+      const payload = e.detail;
+      if (!payload) return;
+      setEditId(payload.id);
+      setTitle(payload.title || "");
+      setRating(payload.rating?.toString() || "");
+      setReview(payload.review || "");
+      setSelectedGenres((payload.anime_genres || []).map((g) => Number(g.genre_id || g.genres?.id)).filter(Boolean));
+      setExistingImageUrl(payload.image_url || null);
+    };
+
+    window.addEventListener("openEditAnime", handler);
+    return () => window.removeEventListener("openEditAnime", handler);
   }, []);
 
   const fetchGenres = async () => {
@@ -77,12 +96,10 @@ const AddAnime = () => {
     setError("");
     setSuccess("");
     setEditId(null);
-    setEditTitle("");
-    setEditRating("");
-    setEditReview("");
+    setExistingImageUrl(null);
   };
 
-  const addAnime = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -104,8 +121,8 @@ const AddAnime = () => {
       return;
     }
 
-    let imageUrl = null;
-    if (image) {
+    let imageUrl = existingImageUrl || null;
+    if (image && image instanceof File) {
       const { url, error: uploadError } = await uploadImage(image);
       if (uploadError) {
         setError("Gagal mengunggah gambar.");
@@ -115,6 +132,31 @@ const AddAnime = () => {
       imageUrl = url;
     }
 
+    // EDIT
+    if (editId) {
+      const { error } = await updateAnime(editId, {
+        title: title.trim(),
+        rating: ratingValue,
+        review: review.trim(),
+        image_url: imageUrl,
+      });
+
+      if (error) {
+        setError(error.message || "Gagal menyimpan perubahan.");
+        return;
+      }
+
+      await setAnimeGenres(editId, selectedGenres);
+
+      setSuccess("Perubahan anime berhasil disimpan.");
+      resetForm();
+      fetchAnimes();
+      // notify other components (Dashboard) to refresh
+      window.dispatchEvent(new Event("animesChanged"));
+      return;
+    }
+
+    // CREATE
     const { data, error: createError } = await createAnime({
       title: title.trim(),
       rating: ratingValue,
@@ -131,52 +173,27 @@ const AddAnime = () => {
 
     const animeId = data?.[0]?.id;
     if (animeId && selectedGenres.length > 0) {
-      await addAnimeGenres(animeId, selectedGenres);
+      await setAnimeGenres(animeId, selectedGenres);
     }
 
     setSuccess("Anime berhasil ditambahkan!");
     resetForm();
     fetchAnimes();
+    window.dispatchEvent(new Event("animesChanged"));
   };
+
 
   const editAnime = (item) => {
     setEditId(item.id);
-    setEditTitle(item.title);
-    setEditRating(item.rating.toString());
-    setEditReview(item.review);
+    setTitle(item.title || "");
+    setRating(item.rating?.toString() || "");
+    setReview(item.review || "");
+    setSelectedGenres((item.anime_genres || []).map((g) => Number(g.genre_id || g.genres?.id)).filter(Boolean));
+    setExistingImageUrl(item.image_url || null);
     setError("");
     setSuccess("");
   };
-
-  // eslint-disable-next-line no-unused-vars
-  const saveEdit = async () => {
-    if (!editTitle.trim() || !editRating.trim() || !editReview.trim()) {
-      setError("Semua field edit wajib diisi.");
-      return;
-    }
-
-    const ratingValue = parseFloat(editRating);
-    if (Number.isNaN(ratingValue) || ratingValue < 0 || ratingValue > 10) {
-      setError("Rating harus antara 0 dan 10.");
-      return;
-    }
-
-    const { error } = await updateAnime(editId, {
-      title: editTitle.trim(),
-      rating: ratingValue,
-      review: editReview.trim(),
-    });
-
-    if (error) {
-      setError(error.message || "Gagal menyimpan perubahan.");
-      console.error(error);
-      return;
-    }
-
-    setSuccess("Perubahan anime berhasil disimpan.");
-    resetForm();
-    fetchAnimes();
-  };
+  
 
   const deleteAnime = async (id) => {
     await deleteAnimeById(id);
@@ -199,7 +216,7 @@ const AddAnime = () => {
           </span>
         </div>
 
-        <form onSubmit={addAnime} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
               <span className="text-sm font-medium text-slate-700">Judul Anime</span>
@@ -264,12 +281,9 @@ const AddAnime = () => {
 
             <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
               <span className="text-sm font-medium text-slate-700">Gambar Poster</span>
-              <input
-                type="file"
-                accept="image/*"
-                className="mt-3 w-full text-sm text-slate-700"
-                onChange={(e) => setImage(e.target.files?.[0] || null)}
-              />
+              <div className="mt-3">
+                <ImageUpload file={image} onFileChange={setImage} existingUrl={existingImageUrl} />
+              </div>
             </label>
           </div>
 
@@ -278,7 +292,7 @@ const AddAnime = () => {
               type="submit"
               className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
             >
-              Tambah Anime
+              {editId ? "Simpan Perubahan" : "Tambah Anime"}
             </button>
             {editId && (
               <button

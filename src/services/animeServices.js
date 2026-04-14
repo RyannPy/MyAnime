@@ -9,6 +9,16 @@ export const getAnimes = async (userId) => {
         .order("id", { ascending: false });
 };
 
+// GET with genres (for dashboard preview)
+export const getAnimesWithGenres = async (userId, limit = 4) => {
+    return await supabase
+        .from("animes")
+        .select(`*, anime_genres ( genres ( id, name ) )`)
+        .eq("user_id", userId)
+        .order("id", { ascending: false })
+        .limit(limit);
+};
+
 // ADD
 export const createAnime = async (anime) => {
     return await supabase.from("animes").insert([anime]).select();
@@ -26,6 +36,21 @@ export const deleteAnimeById = async (id) => {
 
 // ADD ANIME GENRES
 export const addAnimeGenres = async (animeId, genreIds) => {
+    const data = genreIds.map((genreId) => ({
+        anime_id: animeId,
+        genre_id: genreId,
+    }));
+
+    return await supabase.from("anime_genres").insert(data);
+};
+
+// Replace anime genres: delete existing and insert new list
+export const setAnimeGenres = async (animeId, genreIds) => {
+    // delete existing
+    await supabase.from("anime_genres").delete().eq("anime_id", animeId);
+
+    if (!genreIds || genreIds.length === 0) return { data: [], error: null };
+
     const data = genreIds.map((genreId) => ({
         anime_id: animeId,
         genre_id: genreId,
