@@ -95,7 +95,7 @@ function Dashboard() {
                 </h1>
               </div>
               <p className="max-w-xl text-sm text-slate-500 sm:text-right">
-                Lihat statistik menonton dan rekomendasi anime terbaru dalam tampilan minimalis berwarna biru.
+                Lihat statistik menonton dan rekomendasi anime terbaru dalam satu halaman. Klik tombol "Tambah Anime" untuk menambahkan koleksi baru atau klik kartu anime untuk melihat detail dan mengedit koleksi yang sudah ada.
               </p>
             </div>
           </div>
@@ -147,7 +147,7 @@ function Dashboard() {
               </h2>
             </div>
             <p className="text-sm text-slate-500">
-              Kartu anime dengan ulasan singkat dan tombol untuk melihat detail.
+              Lihat koleksi anime kamu yang terbaru ditambahkan.
             </p>
           </div>
 

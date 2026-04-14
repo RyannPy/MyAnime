@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/immutability */
 import { useState, useEffect } from "react";
 import { getGenres } from "../services/genreServices";
@@ -311,54 +312,6 @@ const AddAnime = () => {
             </div>
           )}
         </form>
-      </div>
-
-      <div className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-xl font-semibold text-slate-900">Anime Saya</h3>
-            <p className="mt-2 text-sm text-slate-500">Kelola anime yang sudah ditambahkan ke koleksi.</p>
-          </div>
-          <span className="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600">
-            Total: {list.length}
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-500">Loading ...</div>
-        ) : list.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-slate-500">Belum ada anime. Tambahkan koleksi anime baru.</div>
-        ) : (
-          <div className="grid gap-4">
-            {list.map((item) => (
-              <div key={item.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h4 className="text-lg font-semibold text-slate-900">{item.title}</h4>
-                    <p className="mt-1 text-sm text-slate-600">Rating: {item.rating}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => editAnime(item)}
-                      className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteAnime(item.id)}
-                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
-                    >
-                      Hapus
-                    </button>
-                  </div>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-slate-600 line-clamp-3">{item.review}</p>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
