@@ -1,4 +1,7 @@
+/* eslint-disable react-hooks/immutability */
 import { useState, useEffect } from "react";
+import { getGenres } from "../services/genreServices";
+import { addAnimeGenres, uploadImage } from "../services/animeServices";
 
 // CRUD
 import {
@@ -16,35 +19,47 @@ const AddAnime = () => {
   const [rating, setRating] = useState("");
   const [review, setReview] = useState("");
   const [list, setList] = useState([]);
-
   const [editId, setEditId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editRating, setEditRating] = useState("");
   const [editReview, setEditReview] = useState("");
-
+  const [genres, setGenres] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  //   USE EFFECT
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
+    fetchGenres();
     fetchAnimes();
+   
   }, []);
 
-  //   FETCH
+  const fetchGenres = async () => {
+    const { data, error } = await getGenres();
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setGenres(data || []);
+  };
+
   const fetchAnimes = async () => {
     setLoading(true);
+    setError("");
 
     const user = await getCurrentUser();
     if (!user) {
+      setError("User tidak ditemukan.");
       setLoading(false);
       return;
     }
 
     const { data, error } = await getAnimes(user.id);
-
     if (error) {
-      console.log(error);
+      console.error(error);
+      setError("Gagal memuat anime.");
       setLoading(false);
       return;
     }
@@ -53,72 +68,113 @@ const AddAnime = () => {
     setLoading(false);
   };
 
-  // ADD
-
-  const addAnime = async (e) => {
-    e.preventDefault();
-
-    const user = await getCurrentUser();
-    if (!user) return;
-
-    if (title.trim() === "") {
-      setError("Wajib isi sesuatu!");
-      return;
-    }
-
-    if (rating < 0 || rating > 10) {
-      setError("Rating harus 0 - 10");
-      return;
-    }
-
-    if (review.trim() === "") {
-      setError("Wajib isi sesuatu!");
-      return;
-    }
-
-    const { error } = await createAnime({
-      title,
-      rating: parseFloat(rating),
-      review,
-      user_id: user.id,
-    });
-
-    if (error) {
-      console.log(error);
-    }
-
+  const resetForm = () => {
     setTitle("");
     setRating("");
     setReview("");
+    setSelectedGenres([]);
+    setImage(null);
     setError("");
+    setSuccess("");
+    setEditId(null);
+    setEditTitle("");
+    setEditRating("");
+    setEditReview("");
+  };
 
+  const addAnime = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    const user = await getCurrentUser();
+    if (!user) {
+      setError("Silakan login terlebih dahulu.");
+      return;
+    }
+
+    if (!title.trim() || !rating.trim() || !review.trim() || selectedGenres.length === 0) {
+      setError("Semua field wajib diisi, termasuk genre.");
+      return;
+    }
+
+    const ratingValue = parseFloat(rating);
+    if (Number.isNaN(ratingValue) || ratingValue < 0 || ratingValue > 10) {
+      setError("Rating harus antara 0 dan 10.");
+      return;
+    }
+
+    let imageUrl = null;
+    if (image) {
+      const { url, error: uploadError } = await uploadImage(image);
+      if (uploadError) {
+        setError("Gagal mengunggah gambar.");
+        console.error(uploadError);
+        return;
+      }
+      imageUrl = url;
+    }
+
+    const { data, error: createError } = await createAnime({
+      title: title.trim(),
+      rating: ratingValue,
+      review: review.trim(),
+      image_url: imageUrl,
+      user_id: user.id,
+    });
+
+    if (createError) {
+      setError(createError.message || "Gagal menambahkan anime.");
+      console.error(createError);
+      return;
+    }
+
+    const animeId = data?.[0]?.id;
+    if (animeId && selectedGenres.length > 0) {
+      await addAnimeGenres(animeId, selectedGenres);
+    }
+
+    setSuccess("Anime berhasil ditambahkan!");
+    resetForm();
     fetchAnimes();
   };
 
   const editAnime = (item) => {
     setEditId(item.id);
     setEditTitle(item.title);
-    setEditRating(item.rating);
+    setEditRating(item.rating.toString());
     setEditReview(item.review);
+    setError("");
+    setSuccess("");
   };
 
+  // eslint-disable-next-line no-unused-vars
   const saveEdit = async () => {
-    const { error } = await updateAnime(editId, {
-      title: editTitle,
-      rating: parseFloat(editRating),
-      review: editReview,
-    });
-
-    if (error) {
-      console.log(error);
+    if (!editTitle.trim() || !editRating.trim() || !editReview.trim()) {
+      setError("Semua field edit wajib diisi.");
       return;
     }
 
-    setEditId(null);
-    setEditTitle("");
-    setEditRating("");
-    setEditReview("");
+    const ratingValue = parseFloat(editRating);
+    if (Number.isNaN(ratingValue) || ratingValue < 0 || ratingValue > 10) {
+      setError("Rating harus antara 0 dan 10.");
+      return;
+    }
 
+    const { error } = await updateAnime(editId, {
+      title: editTitle.trim(),
+      rating: ratingValue,
+      review: editReview.trim(),
+    });
+
+    if (error) {
+      setError(error.message || "Gagal menyimpan perubahan.");
+      console.error(error);
+      return;
+    }
+
+    setSuccess("Perubahan anime berhasil disimpan.");
+    resetForm();
     fetchAnimes();
   };
 
@@ -128,69 +184,168 @@ const AddAnime = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1>Add Anime</h1>
-      <form onSubmit={addAnime}>
-        <input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Rating"
-          value={rating}
-          onChange={(e) => setRating(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Review"
-          value={review}
-          onChange={(e) => setReview(e.target.value)}
-        />
-        <button type="submit">Add</button>
-      </form>
+    <div className="space-y-8">
+      <div className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-blue-500/80">Tambah Anime</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Form Tambah Anime</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Isi data anime dengan lengkap lalu tekan tombol tambah untuk menyimpan ke koleksi.
+            </p>
+          </div>
+          <span className="inline-flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+            {selectedGenres.length} Genre dipilih
+          </span>
+        </div>
 
-      {error && <p>{error}</p>}
+        <form onSubmit={addAnime} className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+              <span className="text-sm font-medium text-slate-700">Judul Anime</span>
+              <input
+                type="text"
+                className="mt-3 w-full bg-transparent text-slate-900 outline-none"
+                placeholder="Contoh: Attack on Titan"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </label>
 
-      {loading ? (
-        <p>Loading ...</p>
-      ) : list.length === 0 ? (
-        <p>Belum ada Anime</p>
-      ) : (
-        list.map((item) => (
-          <div key={item.id}>
-            {editId === item.id ? (
-              <>
-                <input
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                />
-                <input
-                  type="number"
-                  value={editRating}
-                  onChange={(e) => setEditRating(e.target.value)}
-                />
-                <input
-                  value={editReview}
-                  onChange={(e) => setEditReview(e.target.value)}
-                />
-                <button onClick={() => setEditId(null)}>Cancel</button>
-                <button onClick={() => saveEdit()}>Save</button>
-              </>
-            ) : (
-              <>
-                <span>{item.title}</span>
-                <span>{item.rating}</span>
-                <span>{item.review}</span>
-                <button onClick={() => editAnime(item)}>Edit</button>
-                <button onClick={() => deleteAnime(item.id)}>Hapus</button>
-              </>
+            <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+              <span className="text-sm font-medium text-slate-700">Rating</span>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="10"
+                className="mt-3 w-full bg-transparent text-slate-900 outline-none"
+                placeholder="8.5"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+            <span className="text-sm font-medium text-slate-700">Review Singkat</span>
+            <textarea
+              className="mt-3 w-full bg-transparent text-slate-900 outline-none resize-none"
+              rows="4"
+              placeholder="Tulis review singkat tentang anime ini"
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+            />
+          </label>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+              <span className="text-sm font-medium text-slate-700">Genre</span>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {genres.map((g) => (
+                  <label key={g.id} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-blue-300">
+                    <input
+                      type="checkbox"
+                      value={g.id}
+                      checked={selectedGenres.includes(Number(g.id))}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setSelectedGenres((prev) =>
+                          prev.includes(value) ? prev.filter((id) => id !== value) : [...prev, value],
+                        );
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    {g.name}
+                  </label>
+                ))}
+              </div>
+            </label>
+
+            <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+              <span className="text-sm font-medium text-slate-700">Gambar Poster</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-3 w-full text-sm text-slate-700"
+                onChange={(e) => setImage(e.target.files?.[0] || null)}
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="submit"
+              className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
+            >
+              Tambah Anime
+            </button>
+            {editId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 sm:w-auto"
+              >
+                Batal Edit
+              </button>
             )}
           </div>
-        ))
-      )}
+
+          {(error || success) && (
+            <div className={`rounded-3xl border px-4 py-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+              {error || success}
+            </div>
+          )}
+        </form>
+      </div>
+
+      <div className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-xl font-semibold text-slate-900">Anime Saya</h3>
+            <p className="mt-2 text-sm text-slate-500">Kelola anime yang sudah ditambahkan ke koleksi.</p>
+          </div>
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600">
+            Total: {list.length}
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-500">Loading ...</div>
+        ) : list.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-slate-500">Belum ada anime. Tambahkan koleksi anime baru.</div>
+        ) : (
+          <div className="grid gap-4">
+            {list.map((item) => (
+              <div key={item.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900">{item.title}</h4>
+                    <p className="mt-1 text-sm text-slate-600">Rating: {item.rating}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => editAnime(item)}
+                      className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteAnime(item.id)}
+                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600 line-clamp-3">{item.review}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

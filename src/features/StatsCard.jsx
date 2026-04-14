@@ -1,4 +1,4 @@
-const StatsCard = ({ icon, title, value, description }) => {
+const StatsCard = ({ icon, title, value, description, actionText, onAction }) => {
   return (
     <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
       <div className="flex items-center justify-between">
@@ -11,6 +11,15 @@ const StatsCard = ({ icon, title, value, description }) => {
         <p className="text-sm font-medium text-slate-500">{title}</p>
         <p className="mt-4 text-3xl font-semibold text-slate-900">{value}</p>
         <p className="mt-3 text-sm leading-6 text-slate-500">{description}</p>
+        {actionText && onAction && (
+          <button
+            type="button"
+            onClick={onAction}
+            className="mt-5 inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+          >
+            {actionText}
+          </button>
+        )}
       </div>
     </article>
   );
