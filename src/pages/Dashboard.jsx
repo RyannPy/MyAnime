@@ -1,10 +1,13 @@
 import Sidebar from "../components/Sidebar";
-
+import AddAnime from "../features/AddAnime";
 
 function Dashboard() {
-    return (
-        <Sidebar></Sidebar>
-    )
+  return (
+    <div>
+      <Sidebar></Sidebar>
+      <AddAnime></AddAnime>
+    </div>
+  );
 }
 
 export default Dashboard;

@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
+
+// CRUD
 import {
   getAnimes,
   createAnime,
   updateAnime,
   deleteAnimeById,
 } from "../services/animeServices";
+
+// AUTH
+import { getCurrentUser } from "../services/authServices";
 
 const AddAnime = () => {
   const [title, setTitle] = useState("");
@@ -30,7 +35,13 @@ const AddAnime = () => {
   const fetchAnimes = async () => {
     setLoading(true);
 
-    const { data, error } = await getAnimes();
+    const user = await getCurrentUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await getAnimes(user.id);
 
     if (error) {
       console.log(error);
@@ -41,12 +52,26 @@ const AddAnime = () => {
     setList(data || []);
     setLoading(false);
   };
+
   // ADD
 
   const addAnime = async (e) => {
     e.preventDefault();
 
+    const user = await getCurrentUser();
+    if (!user) return;
+
     if (title.trim() === "") {
+      setError("Wajib isi sesuatu!");
+      return;
+    }
+
+    if (rating < 0 || rating > 10) {
+      setError("Rating harus 0 - 10");
+      return;
+    }
+
+    if (review.trim() === "") {
       setError("Wajib isi sesuatu!");
       return;
     }
@@ -54,8 +79,9 @@ const AddAnime = () => {
     const { error } = await createAnime({
       title,
       rating: parseFloat(rating),
-      review
-    })
+      review,
+      user_id: user.id,
+    });
 
     if (error) {
       console.log(error);
@@ -80,7 +106,7 @@ const AddAnime = () => {
     const { error } = await updateAnime(editId, {
       title: editTitle,
       rating: parseFloat(editRating),
-      review: editReview
+      review: editReview,
     });
 
     if (error) {

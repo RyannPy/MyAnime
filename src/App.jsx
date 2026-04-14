@@ -1,13 +1,30 @@
 import Dashboard from "./pages/Dashboard";
-import AddAnime from "./features/AddAnime";
+import Auth from "./pages/Auth";
 import "./App.css";
+
+// UTILITY
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
-    <div>
-      <Dashboard></Dashboard>
-      <AddAnime></AddAnime>
-    </div>
+    <BrowserRouter>
+      <Routes>
+
+        {/* AUTH */}
+        <Route path="/" element={<Auth />} />
+
+        {/* DASHBOARD */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

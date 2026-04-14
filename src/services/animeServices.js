@@ -1,10 +1,11 @@
 import { supabase } from "./supabase";
 
 // GET
-export const getAnimes = async () => {
+export const getAnimes = async (userId) => {
     return await supabase
         .from("animes")
         .select("*")
+        .eq("user_id", userId)
         .order("id", { ascending: false });
 };
 
