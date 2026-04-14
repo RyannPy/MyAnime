@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { signOut } from "../services/authServices";
 
 const menuItems = [
   {
     id: "dashboard",
     label: "Dashboard",
-    href: "#",
+    href: "/dashboard",
     icon: (
       // Home/grid dashboard icon
       <svg
@@ -124,6 +126,25 @@ function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
 
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const result = await signOut();
+    if (result?.error) {
+      console.error("Logout failed:", result.error);
+      return;
+    }
+    navigate("/");
+  };
+
+  const handleNav = (item) => {
+    setActiveItem(item.id);
+    setMobileOpen(false);
+    if (item.id === "dashboard") {
+      navigate("/dashboard");
+    }
+  };
+
   return (
     <>
       {/* ── Mobile overlay ── */}
@@ -168,7 +189,7 @@ function Sidebar() {
           border-r border-blue-100
           shadow-[4px_0_24px_0_rgba(59,130,246,0.08)]
           transition-all duration-300 ease-in-out
-          ${collapsed ? "w-[72px]" : "w-64"}
+          ${collapsed ? "w-18" : "w-64"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
           sm:translate-x-0
         `}
@@ -182,7 +203,7 @@ function Sidebar() {
           `}
         >
           {/* Logo mark */}
-          <div className="shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-sm">
+          <div className="shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-blue-700 shadow-sm">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
               <path
                 stroke="currentColor"
@@ -251,8 +272,7 @@ function Sidebar() {
                     id={`nav-${item.id}`}
                     onClick={(e) => {
                       e.preventDefault();
-                      setActiveItem(item.id);
-                      setMobileOpen(false);
+                      handleNav(item);
                     }}
                     onMouseEnter={() => setHoveredItem(item.id)}
                     onMouseLeave={() => setHoveredItem(null)}
@@ -311,7 +331,7 @@ function Sidebar() {
             ${collapsed ? "justify-center" : ""}
           `}
         >
-          <div className="shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center border-2 border-blue-300 overflow-hidden">
+          <div className="shrink-0 w-9 h-9 rounded-xl bg-linear-to-br from-blue-100 to-blue-200 flex items-center justify-center border-2 border-blue-300 overflow-hidden">
             <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
               <path
                 stroke="currentColor"
@@ -332,29 +352,34 @@ function Sidebar() {
               </p>
             </div>
           )}
-          {!collapsed && (
-            <button
-              className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-              aria-label="Settings"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24">
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065Z"
-                />
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                />
-              </svg>
-            </button>
-          )}
+        </div>
+
+        {/* ── Logout button ── */}
+        <div className="mx-3 mb-3">
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Logout"
+            className={
+              `w-full flex items-center gap-2 px-3 py-2 rounded-xl
+              font-mono text-sm font-medium text-slate-500
+              hover:bg-blue-50 hover:text-blue-600
+              transition-all duration-200
+              border border-blue-100
+              ${collapsed ? "justify-center" : ""}`
+            }
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 12H3m7-4l-4 4 4 4m5-9v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"
+              />
+            </svg>
+            {!collapsed && "Logout"}
+          </button>
         </div>
 
         {/* ── Collapse toggle button ── */}
@@ -395,7 +420,7 @@ function Sidebar() {
       <div
         className={`
           transition-all duration-300 ease-in-out
-          ${collapsed ? "sm:ml-[72px]" : "sm:ml-64"}
+          ${collapsed ? "sm:ml-18" : "sm:ml-64"}
         `}
       />
     </>
