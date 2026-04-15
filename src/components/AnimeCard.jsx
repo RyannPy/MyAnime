@@ -16,7 +16,7 @@ const AnimeCard = ({ anime, onClick }) => {
         </span>
       </div>
 
-      <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-0 flex items-end bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="w-full p-4 text-white">
           <h3 className="text-sm font-semibold">{title}</h3>
           <div className="mt-2 flex gap-2">

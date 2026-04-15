@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import AnimeCard from "../components/AnimeCard";
 import StatsCard from "../features/StatsCard";
-import AddAnime from "../features/AddAnime";
+import AddAnimeModal from "../components/AddAnimeModal";
 import AnimeModal from "../components/AnimeModal";
 import { getAnimesWithGenres } from "../services/animeServices";
 import { getCurrentUser } from "../services/authServices";
 import { useNavigate } from "react-router-dom";
-
 
 function Dashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -47,8 +46,18 @@ function Dashboard() {
       value: "24",
       description: "Koleksi anime yang sudah kamu selesaikan.",
       icon: (
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 3v18m9-9H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 3v18m9-9H3"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },
@@ -58,8 +67,19 @@ function Dashboard() {
       value: "8.9",
       description: "Penilaian rata-rata dari anime yang kamu lihat.",
       icon: (
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.45 13.97 5.82 21 12 17.27Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.45 13.97 5.82 21 12 17.27Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       ),
     },
@@ -69,8 +89,18 @@ function Dashboard() {
       value: "Add",
       description: "Gunakan fitur tambah anime untuk menyimpan koleksi baru.",
       icon: (
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5v14m7-7H5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 5v14m7-7H5"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </svg>
       ),
       actionText: showAddForm ? "Tutup Form" : "Tambah Anime",
@@ -84,22 +114,27 @@ function Dashboard() {
 
       <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:ml-64 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-6">
+          {/* MAIN TITLE */}
           <div className="rounded-4xl border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur-sm sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-500/80">
-                  Dashboard
+                  MyAnime
                 </p>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
-                  Ringkasan MyAnime
+                  DASHBOARD
                 </h1>
               </div>
               <p className="max-w-xl text-sm text-slate-500 sm:text-right">
-                Lihat statistik menonton dan rekomendasi anime terbaru dalam satu halaman. Klik tombol "Tambah Anime" untuk menambahkan koleksi baru atau klik kartu anime untuk melihat detail dan mengedit koleksi yang sudah ada.
+                Lihat statistik menonton dan rekomendasi anime terbaru dalam
+                satu halaman. Klik tombol "Tambah Anime" untuk menambahkan
+                koleksi baru atau klik kartu anime untuk melihat detail dan
+                mengedit koleksi yang sudah ada.
               </p>
             </div>
           </div>
 
+          {/* CARD-CARD INFO */}
           <section>
             <div className="grid gap-6 xl:grid-cols-3">
               {statsData.map((item) => (
@@ -116,28 +151,12 @@ function Dashboard() {
             </div>
           </section>
 
-          {showAddForm && (
-            <section className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm uppercase tracking-[0.24em] text-blue-500/80">Tambah Anime</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">Form Tambah Anime</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAddForm(false)}
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-blue-300 hover:text-blue-600"
-                >
-                  Tutup
-                </button>
-              </div>
-              <AddAnime />
-            </section>
-          )}
+          <AddAnimeModal isOpen={showAddForm} onClose={() => setShowAddForm(false)} />
         </div>
 
+        {/* LIST ANIME TERBARU */}
         <section className="space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex fle{/* LIST ANIME TERBARU */}x-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
                 Anime List
@@ -153,22 +172,33 @@ function Dashboard() {
 
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {loadingAnimes ? (
-              <div className="col-span-4 text-center text-slate-500">Loading...</div>
+              <div className="col-span-4 text-center text-slate-500">
+                Loading...
+              </div>
             ) : (
               animes.map((anime) => (
                 <AnimeCard
                   key={anime.id}
                   anime={anime}
-                  onClick={(a) => { setSelectedAnime(a); setShowModal(true); }}
+                  onClick={(a) => {
+                    setSelectedAnime(a);
+                    setShowModal(true);
+                  }}
                 />
               ))
             )}
           </div>
+
           <div className="mt-4 flex justify-end">
-            <button onClick={() => navigate('/animes')} className="inline-flex items-center gap-2 text-sm text-blue-600">
+            <button
+              onClick={() => navigate("/animes")}
+              className="inline-flex items-center gap-2 text-sm text-blue-600"
+            >
               Lihat Semua →
             </button>
           </div>
+
+          {/* ANIME DETAIL */}
           <AnimeModal
             anime={selectedAnime}
             isOpen={showModal}
@@ -176,7 +206,13 @@ function Dashboard() {
             onEdit={(item) => {
               // open AddAnime and prefill via custom event
               setShowAddForm(true);
-              setTimeout(() => window.dispatchEvent(new CustomEvent('openEditAnime', { detail: item })), 100);
+              setTimeout(
+                () =>
+                  window.dispatchEvent(
+                    new CustomEvent("openEditAnime", { detail: item }),
+                  ),
+                100,
+              );
             }}
             onDeleted={() => fetchLatest()}
           />

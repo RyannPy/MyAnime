@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { signOut } from "../services/authServices";
 
 const menuItems = [
@@ -29,7 +29,7 @@ const menuItems = [
   {
     id: "leaderboard",
     label: "Leaderboard",
-    href: "#",
+    href: "/leaderboard",
     icon: (
       // Trophy/ranking icon
       <svg
@@ -52,7 +52,7 @@ const menuItems = [
   {
     id: "list",
     label: "Anime List",
-    href: "#",
+    href: "/animes",
     icon: (
       // List/bookmark icon
       <svg
@@ -75,7 +75,7 @@ const menuItems = [
   {
     id: "history",
     label: "History",
-    href: "#",
+    href: "/history",
     icon: (
       // Clock/history icon
       <svg
@@ -98,7 +98,7 @@ const menuItems = [
   {
     id: "analytics",
     label: "Analytics",
-    href: "#",
+    href: "/analytics",
     icon: (
       // Bar chart analytics icon
       <svg
@@ -127,6 +127,16 @@ function Sidebar() {
   const [hoveredItem, setHoveredItem] = useState(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes("dashboard")) setActiveItem("dashboard");
+    else if (path.includes("leaderboard")) setActiveItem("leaderboard");
+    else if (path.includes("animes")) setActiveItem("list");
+    else if (path.includes("history")) setActiveItem("history");
+    else if (path.includes("analytics")) setActiveItem("analytics");
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     const result = await signOut();
@@ -138,10 +148,9 @@ function Sidebar() {
   };
 
   const handleNav = (item) => {
-    setActiveItem(item.id);
     setMobileOpen(false);
-    if (item.id === "dashboard") {
-      navigate("/dashboard");
+    if (item.href !== "#") {
+      navigate(item.href);
     }
   };
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import GenreBadge from "./GenreBadge";
 import { deleteAnimeById } from "../services/animeServices";
@@ -18,7 +19,7 @@ const AnimeModal = ({ anime, isOpen, onClose, onEdit, onDeleted }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="mx-4 max-w-4xl rounded-2xl bg-white p-6 shadow-lg">
-        <button onClick={onClose} className="absolute right-4 top-4 text-slate-500">❌</button>
+        
 
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
@@ -52,7 +53,7 @@ const AnimeModal = ({ anime, isOpen, onClose, onEdit, onDeleted }) => {
         <div className="mt-6 flex items-center gap-3">
           <button onClick={() => { onEdit(anime); onClose(); }} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Edit</button>
           <button onClick={handleDelete} className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600">Hapus</button>
-          <button onClick={onClose} className="ml-auto rounded-full border px-3 py-1 text-sm text-slate-600">Tutup</button>
+          <button onClick={onClose} className="ml-auto rounded-full border px-3 py-1 text-sm text-slate-600">X</button>
         </div>
       </div>
     </div>
