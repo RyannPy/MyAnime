@@ -2,7 +2,6 @@
 /* eslint-disable react-hooks/immutability */
 import { useState, useEffect } from "react";
 import { getGenres } from "../services/genreServices";
-// eslint-disable-next-line no-unused-vars
 import { addAnimeGenres, uploadImage } from "../services/animeServices";
 import ImageUpload from "../components/ImageUpload";
 

@@ -10,13 +10,18 @@ export const getAnimes = async (userId) => {
 };
 
 // GET with genres (for dashboard preview)
-export const getAnimesWithGenres = async (userId, limit = 4) => {
-    return await supabase
+export const getAnimesWithGenres = async (userId, limit) => {
+    let query = supabase
         .from("animes")
         .select(`*, anime_genres ( genres ( id, name ) )`)
         .eq("user_id", userId)
-        .order("id", { ascending: false })
-        .limit(limit);
+        .order("id", { ascending: false });
+
+    if (limit) {
+        query = query.limit(limit);
+    }
+
+    return await query;
 };
 
 // ADD

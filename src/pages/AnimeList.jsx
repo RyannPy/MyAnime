@@ -28,13 +28,14 @@ const AnimeList = () => {
     setLoadingAnimes(true);
     const user = await getCurrentUser();
     if (!user) return setLoadingAnimes(false);
-    const { data, error } = await getAnimesWithGenres(user.id, null);
+    const { data, error } = await getAnimesWithGenres(user.id);
     if (error) {
       console.error(error);
       setLoadingAnimes(false);
       return;
     }
     setAnimes(data || []);
+
     setLoadingAnimes(false);
   };
 
@@ -127,6 +128,8 @@ const AnimeList = () => {
               }}
               onDeleted={() => fetchLatest()}
             />
+
+            {/* ADD ANIME */}
             <AddAnimeModal
               isOpen={showAddForm}
               onClose={() => setShowAddForm(false)}
