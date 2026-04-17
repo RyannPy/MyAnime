@@ -1,11 +1,13 @@
 import Sidebar from "../components/Sidebar";
-import HistoryCard from "../components/HistoryCard";
-import AnimeModal from "../components/AnimeModal";
-import AddAnimeModal from "../components/AddAnimeModal";
+import HistoryCard from "../components/element/HistoryCard";
+import AnimeModal from "../components/element/AnimeModal";
+import AddAnimeModal from "../components/element/AddAnimeModal";
+import LoadingSpinner from "../components/element/LoadingSpinner";
 
 import { useState, useEffect } from "react";
 import { getAnimesWithGenres } from "../services/animeServices";
 import { getCurrentUser } from "../services/authServices";
+import { useToast } from "../contexts/ToastContexts";
 
 function History() {
   const [animes, setAnimes] = useState([]);
@@ -13,6 +15,7 @@ function History() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedAnime, setSelectedAnime] = useState(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -30,6 +33,7 @@ function History() {
     const { data, error } = await getAnimesWithGenres(user.id);
     if (error) {
       console.error(error);
+      addToast("Gagal memuat history anime.", "error");
       setLoading(false);
       return;
     }
@@ -89,11 +93,11 @@ function History() {
         {/* HISTORY PAGE */}
 
         {loading ? (
-          <div className="col-span-4 text-center text-slate-500">
-            Loading...
+          <div className="flex justify-center py-16">
+            <LoadingSpinner size="lg" />
           </div>
         ) : animes.length === 0 ? (
-          <div className="col-span-4 text-center text-slate-500">
+          <div className="py-16 text-center text-sm text-slate-400">
             Belum ada history.
           </div>
         ) : (

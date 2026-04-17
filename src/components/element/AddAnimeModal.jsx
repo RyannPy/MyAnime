@@ -1,4 +1,4 @@
-import AddAnime from "../features/AddAnime";
+import AddAnime from "../../features/AddAnime";
 
 const AddAnimeModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;

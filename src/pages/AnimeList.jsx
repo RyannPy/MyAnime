@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 
 import Sidebar from "../components/Sidebar";
-import AnimeCard from "../components/AnimeCard";
-import AnimeModal from "../components/AnimeModal";
-import AddAnimeModal from "../components/AddAnimeModal";
+import AnimeCard from "../components/element/AnimeCard";
+import AnimeModal from "../components/element/AnimeModal";
+import AddAnimeModal from "../components/element/AddAnimeModal";
+import LoadingSpinner from "../components/element/LoadingSpinner";
 
 import { getAnimesWithGenres } from "../services/animeServices";
 import { getCurrentUser } from "../services/authServices";
@@ -93,8 +94,12 @@ const AnimeList = () => {
 
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
               {loadingAnimes ? (
-                <div className="col-span-4 text-center text-slate-500">
-                  Loading...
+                <div className="col-span-4 flex justify-center py-16">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : animes.length === 0 ? (
+                <div className="col-span-4 text-center text-sm text-slate-400 py-16">
+                  Belum ada anime. Tambahkan koleksi pertamamu!
                 </div>
               ) : (
                 animes.map((anime) => (

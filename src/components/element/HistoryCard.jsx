@@ -1,4 +1,3 @@
-import React from "react";
 import GenreBadge from "./GenreBadge";
 
 const HistoryCard = ({ anime, onClick }) => {
@@ -17,7 +16,7 @@ const HistoryCard = ({ anime, onClick }) => {
     : "";
 
   return (
-    <article onClick={() => onClick?.(anime)} className="flex w-full overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-200 hover:shadow-md  cursor-pointer border border-slate-100 h-37.5 mt-1">
+    <article onClick={() => onClick?.(anime)} className="flex w-full overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow duration-200 hover:shadow-md cursor-pointer border border-slate-100 h-37.5 mt-1">
       {/* Thumbnail Kiri */}
       <div className="w-28 sm:w-36 shrink-0 bg-slate-100">
         <img
@@ -39,7 +38,7 @@ const HistoryCard = ({ anime, onClick }) => {
             </span>
           </div>
 
-          <div className="mt-2 flex flex-wrap gap-2 ">
+          <div className="mt-2 flex flex-wrap gap-2">
             {anime_genres.map((g) => (
               <GenreBadge key={g.genres?.id}>
                 {g.genres?.name || g.name}

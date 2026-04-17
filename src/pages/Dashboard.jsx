@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
-import AnimeCard from "../components/AnimeCard";
+import AnimeCard from "../components/element/AnimeCard";
 import StatsCard from "../features/StatsCard";
-import AddAnimeModal from "../components/AddAnimeModal";
-import AnimeModal from "../components/AnimeModal";
+import AddAnimeModal from "../components/element/AddAnimeModal";
+import AnimeModal from "../components/element/AnimeModal";
+import LoadingSpinner from "../components/element/LoadingSpinner";
 import { getAnimesWithGenres } from "../services/animeServices";
 import { getCurrentUser } from "../services/authServices";
 import { useNavigate } from "react-router-dom";
@@ -127,7 +128,7 @@ function Dashboard() {
               </div>
               <p className="max-w-xl text-sm text-slate-500 sm:text-right">
                 Lihat statistik menonton dan rekomendasi anime terbaru dalam
-                satu halaman. Klik tombol "Tambah Anime" untuk menambahkan
+                satu halaman. Klik tombol &quot;Tambah Anime&quot; untuk menambahkan
                 koleksi baru atau klik kartu anime untuk melihat detail dan
                 mengedit koleksi yang sudah ada.
               </p>
@@ -156,7 +157,7 @@ function Dashboard() {
 
         {/* LIST ANIME TERBARU */}
         <section className="space-y-6">
-          <div className="flex fle{/* LIST ANIME TERBARU */}x-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
                 Anime List
@@ -172,8 +173,8 @@ function Dashboard() {
 
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {loadingAnimes ? (
-              <div className="col-span-4 text-center text-slate-500">
-                Loading...
+              <div className="col-span-4 flex justify-center py-16">
+                <LoadingSpinner size="lg" />
               </div>
             ) : (
               animes.map((anime) => (

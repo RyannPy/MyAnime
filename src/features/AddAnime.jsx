@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/immutability */
 import { useState, useEffect } from "react";
 import { getGenres } from "../services/genreServices";
 import { addAnimeGenres, uploadImage } from "../services/animeServices";
-import ImageUpload from "../components/ImageUpload";
+import ImageUpload from "../components/element/ImageUpload";
+import { useToast } from "../contexts/ToastContexts";
 
 // CRUD
 import {
@@ -28,13 +28,14 @@ const AddAnime = () => {
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // NOTIFICATION
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchGenres();
     fetchAnimes();
-   
   }, []);
 
   // If parent passes prefill via window (Dashboard will set prefillAnime state and pass here via prop if wired),
@@ -66,11 +67,10 @@ const AddAnime = () => {
 
   const fetchAnimes = async () => {
     setLoading(true);
-    setError("");
 
     const user = await getCurrentUser();
     if (!user) {
-      setError("User tidak ditemukan.");
+      addToast("User tidak ditemukan.", "error");
       setLoading(false);
       return;
     }
@@ -78,7 +78,7 @@ const AddAnime = () => {
     const { data, error } = await getAnimes(user.id);
     if (error) {
       console.error(error);
-      setError("Gagal memuat anime.");
+      addToast("Gagal memuat anime.", "error");
       setLoading(false);
       return;
     }
@@ -93,40 +93,39 @@ const AddAnime = () => {
     setReview("");
     setSelectedGenres([]);
     setImage(null);
-    setError("");
-    setSuccess("");
     setEditId(null);
     setExistingImageUrl(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     const user = await getCurrentUser();
     if (!user) {
-      setError("Silakan login terlebih dahulu.");
+      addToast("Silakan login terlebih dahulu.", "error");
       return;
     }
 
     if (!title.trim() || !rating.trim() || !review.trim() || selectedGenres.length === 0) {
-      setError("Semua field wajib diisi, termasuk genre.");
+      addToast("Semua field wajib diisi, termasuk genre.", "warning");
       return;
     }
 
     const ratingValue = parseFloat(rating);
     if (Number.isNaN(ratingValue) || ratingValue < 0 || ratingValue > 10) {
-      setError("Rating harus antara 0 dan 10.");
+      addToast("Rating harus antara 0 dan 10.", "warning");
       return;
     }
+
+    setSubmitting(true);
 
     let imageUrl = existingImageUrl || null;
     if (image && image instanceof File) {
       const { url, error: uploadError } = await uploadImage(image);
       if (uploadError) {
-        setError("Gagal mengunggah gambar.");
+        addToast("Gagal mengunggah gambar.", "error");
         console.error(uploadError);
+        setSubmitting(false);
         return;
       }
       imageUrl = url;
@@ -142,17 +141,19 @@ const AddAnime = () => {
       });
 
       if (error) {
-        setError(error.message || "Gagal menyimpan perubahan.");
+        addToast(error.message || "Gagal menyimpan perubahan.", "error");
+        setSubmitting(false);
         return;
       }
 
       await setAnimeGenres(editId, selectedGenres);
 
-      setSuccess("Perubahan anime berhasil disimpan.");
+      addToast("Perubahan anime berhasil disimpan!", "success");
       resetForm();
       fetchAnimes();
       // notify other components (Dashboard) to refresh
       window.dispatchEvent(new Event("animesChanged"));
+      setSubmitting(false);
       return;
     }
 
@@ -166,8 +167,9 @@ const AddAnime = () => {
     });
 
     if (createError) {
-      setError(createError.message || "Gagal menambahkan anime.");
+      addToast(createError.message || "Gagal menambahkan anime.", "error");
       console.error(createError);
+      setSubmitting(false);
       return;
     }
 
@@ -176,10 +178,11 @@ const AddAnime = () => {
       await setAnimeGenres(animeId, selectedGenres);
     }
 
-    setSuccess("Anime berhasil ditambahkan!");
+    addToast("Anime berhasil ditambahkan!", "success");
     resetForm();
     fetchAnimes();
     window.dispatchEvent(new Event("animesChanged"));
+    setSubmitting(false);
   };
 
 
@@ -190,10 +193,8 @@ const AddAnime = () => {
     setReview(item.review || "");
     setSelectedGenres((item.anime_genres || []).map((g) => Number(g.genre_id || g.genres?.id)).filter(Boolean));
     setExistingImageUrl(item.image_url || null);
-    setError("");
-    setSuccess("");
   };
-  
+
 
   const deleteAnime = async (id) => {
     await deleteAnimeById(id);
@@ -290,26 +291,25 @@ const AddAnime = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="submit"
-              className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
+              disabled={submitting}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-70 sm:w-auto"
             >
-              {editId ? "Simpan Perubahan" : "Tambah Anime"}
+              {submitting && (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              )}
+              {submitting ? "Menyimpan..." : editId ? "Simpan Perubahan" : "Tambah Anime"}
             </button>
             {editId && (
               <button
                 type="button"
                 onClick={resetForm}
-                className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 sm:w-auto"
+                disabled={submitting}
+                className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 disabled:opacity-50 sm:w-auto"
               >
                 Batal Edit
               </button>
             )}
           </div>
-
-          {(error || success) && (
-            <div className={`rounded-3xl border px-4 py-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
-              {error || success}
-            </div>
-          )}
         </form>
       </div>
     </div>

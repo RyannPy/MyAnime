@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { signIn, signUp } from "../services/authServices";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../contexts/ToastContexts";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
-  const [status, setStatus] = useState({ type: "", message: "" });
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const handleAuth = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     let result;
 
@@ -21,13 +24,15 @@ const Auth = () => {
       result = await signUp(email, password);
     }
 
+    setLoading(false);
+
     if (result?.error) {
-      setStatus({ type: "error", message: result.error.message });
+      addToast(result.error.message, "error");
       return;
     }
 
-    setStatus({ type: "success", message: isLogin ? "Login berhasil!" : "Cek email untuk verifikasi." });
-    navigate("/dashboard");
+    addToast(isLogin ? "Login berhasil!" : "Cek email untuk verifikasi.", "success");
+    if (isLogin) navigate("/dashboard");
   };
 
   return (
@@ -68,24 +73,21 @@ const Auth = () => {
 
           <button
             type="submit"
-            className="w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+            disabled={loading}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-70"
           >
-            {isLogin ? "Login" : "Register"}
+            {loading && (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            )}
+            {loading ? "Memproses..." : isLogin ? "Login" : "Register"}
           </button>
         </form>
-
-        {status.message && (
-          <p className={`mt-4 text-center text-sm ${status.type === "error" ? "text-rose-500" : "text-slate-600"}`}>
-            {status.message}
-          </p>
-        )}
 
         <div className="mt-8 text-center">
           <button
             type="button"
             onClick={() => {
               setIsLogin(!isLogin);
-              setStatus({ type: "", message: "" });
             }}
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
