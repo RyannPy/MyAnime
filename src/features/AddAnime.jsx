@@ -17,7 +17,7 @@ import {
 // AUTH
 import { getCurrentUser } from "../services/authServices";
 
-const AddAnime = () => {
+const AddAnime = ({ onClose }) => {
   const [title, setTitle] = useState("");
   const [rating, setRating] = useState("");
   const [review, setReview] = useState("");
@@ -154,6 +154,7 @@ const AddAnime = () => {
       // notify other components (Dashboard) to refresh
       window.dispatchEvent(new Event("animesChanged"));
       setSubmitting(false);
+      onClose?.();
       return;
     }
 
@@ -183,6 +184,7 @@ const AddAnime = () => {
     fetchAnimes();
     window.dispatchEvent(new Event("animesChanged"));
     setSubmitting(false);
+    onClose?.();
   };
 
 
@@ -302,7 +304,10 @@ const AddAnime = () => {
             {editId && (
               <button
                 type="button"
-                onClick={resetForm}
+                onClick={() => {
+                  resetForm();
+                  onClose?.();
+                }}
                 disabled={submitting}
                 className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 disabled:opacity-50 sm:w-auto"
               >

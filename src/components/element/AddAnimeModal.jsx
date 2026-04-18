@@ -12,8 +12,7 @@ const AddAnimeModal = ({ isOpen, onClose }) => {
         >
           ✕
         </button>
-        <AddAnime />
-      </div>
+        <AddAnime onClose={onClose} />      </div>
     </div>
   );
 };
