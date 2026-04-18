@@ -131,6 +131,7 @@ function Sidebar() {
 
   useEffect(() => {
     const path = location.pathname;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (path.includes("dashboard")) setActiveItem("dashboard");
     else if (path.includes("leaderboard")) setActiveItem("leaderboard");
     else if (path.includes("animes")) setActiveItem("list");

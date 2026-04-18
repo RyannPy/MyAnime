@@ -1,21 +1,33 @@
 import { useState, useEffect } from "react";
+// element
 import Sidebar from "../components/Sidebar";
 import AnimeCard from "../components/element/AnimeCard";
 import StatsCard from "../features/StatsCard";
 import AddAnimeModal from "../components/element/AddAnimeModal";
 import AnimeModal from "../components/element/AnimeModal";
 import LoadingSpinner from "../components/element/LoadingSpinner";
+
+// services
 import { getAnimesWithGenres } from "../services/animeServices";
 import { getCurrentUser } from "../services/authServices";
 import { useNavigate } from "react-router-dom";
 
+// statistics
+import { getTotalAnime, getAverageRating } from "../utils/statistics";
+
 function Dashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [animes, setAnimes] = useState([]);
+
   const [loadingAnimes, setLoadingAnimes] = useState(false);
   const [selectedAnime, setSelectedAnime] = useState(null);
+
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+
+  // statistik
+  const [totalAnime, setTotalAnime] = useState("");
+  const [averageRating, setAverageRating] = useState("");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -37,14 +49,21 @@ function Dashboard() {
       return;
     }
     setAnimes(data || []);
+    const total = getTotalAnime(data);
+    const avg = getAverageRating(data);
+
+    setTotalAnime(total);
+    setAverageRating(avg);
     setLoadingAnimes(false);
   };
+
+
 
   const statsData = [
     {
       id: 1,
       title: "Total Anime Ditonton",
-      value: "24",
+      value: totalAnime,
       description: "Koleksi anime yang sudah kamu selesaikan.",
       icon: (
         <svg
@@ -65,7 +84,7 @@ function Dashboard() {
     {
       id: 2,
       title: "Rata-rata Rating",
-      value: "8.9",
+      value: averageRating,
       description: "Penilaian rata-rata dari anime yang kamu lihat.",
       icon: (
         <svg
