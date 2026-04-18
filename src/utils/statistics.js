@@ -16,9 +16,13 @@ export const getAverageRating = (animes) => {
 }
 
 // HIGHEST RATING
-export const getHighestRating = (animes) => {
-    return animes.reduce((prev, curr) => (curr.rating || 0) > (prev.rating || 0) ? curr : prev, {});
-}
+export const getTopRated = (animes) => {
+    if (!animes.length) return null;
+
+    return animes.reduce((prev, curr) =>
+        (curr.rating || 0) > (prev.rating || 0) ? curr : prev
+    );
+};
 
 
 // FAVORITE GENRE
