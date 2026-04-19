@@ -117,6 +117,8 @@ function Analytics() {
     const topGenresData = getTopGenres(data, 5);
     const monthlyActivityData = getMonthlyActivity(data);
     const ratingDist = getRatingDistribution(data);
+
+  
     
 
     // pasang
@@ -131,22 +133,11 @@ function Analytics() {
   };
 
   // DATA
-  const DUMMY_STATS = {
+  const STATS = {
     totalAnime: totalAnime,
     averageRating: averageRating,
     uploadedThisMonth: monthlyCount,
   };
-
-  const DUMMY_ACTIVITY = [
-    { week: "Mg 1", added: 3 },
-    { week: "Mg 2", added: 7 },
-    { week: "Mg 3", added: 2 },
-    { week: "Mg 4", added: 9 },
-    { week: "Mg 5", added: 5 },
-    { week: "Mg 6", added: 11 },
-    { week: "Mg 7", added: 4 },
-    { week: "Mg 8", added: 8 },
-  ];
 
   const maxGenreCount = Math.max(...topGenres.map(g => g.total), 1);
 
@@ -214,10 +205,10 @@ function Analytics() {
                 Total Anime Ditonton
               </p>
               <p className="mt-2 text-6xl font-bold tracking-tight text-white">
-                {DUMMY_STATS.totalAnime}
+                {STATS.totalAnime}
               </p>
               <p className="mt-3 text-sm text-blue-200">
-                +{DUMMY_STATS.uploadedThisMonth} anime bulan ini 🎉
+                +{STATS.uploadedThisMonth} anime bulan ini 🎉
               </p>
 
               <div className="mt-6 h-1 w-full rounded-full bg-white/10">
@@ -246,7 +237,7 @@ function Analytics() {
               Rata-rata Rating
             </p>
             <p className="mt-2 text-4xl font-bold text-slate-900">
-              {DUMMY_STATS.averageRating}
+              {STATS.averageRating}
               <span className="ml-1 text-lg font-medium text-slate-400">
                 /10
               </span>
@@ -256,7 +247,7 @@ function Analytics() {
                 <div
                   key={i}
                   className={`h-1.5 flex-1 rounded-full transition-all ${
-                    i <= Math.round(DUMMY_STATS.averageRating)
+                    i <= Math.round(STATS.averageRating)
                       ? "bg-amber-400"
                       : "bg-slate-100"
                   }`}
@@ -287,7 +278,7 @@ function Analytics() {
               Upload Bulan Ini
             </p>
             <p className="mt-2 text-4xl font-bold text-slate-900">
-              {DUMMY_STATS.uploadBulan}
+              {STATS.uploadedThisMonth}
               <span className="ml-1 text-lg font-medium text-slate-400">
                 Anime
               </span>
@@ -456,7 +447,7 @@ function Analytics() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={DUMMY_ACTIVITY}
+                  data={monthlyActivity}
                   margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
                 >
                   <defs>
@@ -537,20 +528,17 @@ function Analytics() {
               {[
                 {
                   label: "Total Ditambah",
-                  value: DUMMY_ACTIVITY.reduce((s, d) => s + d.added, 0),
+                  value: getTotalAdded(monthlyActivity),
                   color: "text-blue-600",
                 },
                 {
                   label: "Bulan Terbaik",
-                  value: "Juni",
+                  value: getBestMonth(monthlyActivity),
                   color: "text-slate-700",
                 },
                 {
                   label: "Rata-rata/Bulan",
-                  value: (
-                    DUMMY_ACTIVITY.reduce((s, d) => s + d.added, 0) /
-                    DUMMY_ACTIVITY.length
-                  ).toFixed(1),
+                  value: getAvgPerMonth(monthlyActivity),
                   color: "text-slate-700",
                 },
               ].map((item) => (
@@ -588,15 +576,7 @@ function Analytics() {
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={[
-                    { range: "1–4", count: 2 },
-                    { range: "4–5", count: 3 },
-                    { range: "5–6", count: 5 },
-                    { range: "6–7", count: 7 },
-                    { range: "7–8", count: 10 },
-                    { range: "8–9", count: 14 },
-                    { range: "9–10", count: 6 },
-                  ]}
+                  data={ratingDistribution}
                   margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
                   barCategoryGap="30%"
                 >

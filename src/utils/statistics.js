@@ -130,8 +130,7 @@ export const getRatingDistribution = (animes) => {
         );
 
         if (bucket) bucket.count++;
+    });
 
-        return ranges.map(({ range, count }) => ({ range, count }))
-    })
-
-}
+    return ranges.map(({ range, count }) => ({ range, count }));
+};
