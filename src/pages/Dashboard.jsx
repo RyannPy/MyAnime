@@ -20,9 +20,10 @@ function Dashboard() {
   const [animes, setAnimes] = useState([]);
 
   const [loadingAnimes, setLoadingAnimes] = useState(false);
-  const [selectedAnime, setSelectedAnime] = useState(null);
 
+  const [selectedAnime, setSelectedAnime] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  
   const navigate = useNavigate();
 
   // statistik
