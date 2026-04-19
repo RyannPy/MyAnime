@@ -25,7 +25,17 @@ import { getCurrentUser } from "../services/authServices";
 import { useState, useEffect } from "react";
 
 // statistics
-import { getTotalAnime, getAverageRating } from "../utils/statistics";
+import {
+  getTotalAnime,
+  getAverageRating,
+  getTopGenres,
+  getThisMonthAnimeCount,
+  getMonthlyActivity,
+  getTotalAdded,
+  getBestMonth,
+  getAvgPerMonth,
+  getRatingDistribution,
+} from "../utils/statistics";
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
@@ -74,6 +84,10 @@ function Analytics() {
   // statistics
   const [totalAnime, setTotalAnime] = useState("");
   const [averageRating, setAverageRating] = useState("");
+  const [monthlyCount, setMonthlyCount] = useState("");
+  const [topGenres, setTopGenres] = useState([]);
+  const [monthlyActivity, setMonthlyActivity] = useState([])
+  const [ratingDistribution, setRatingDistribution] = useState([])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -95,32 +109,33 @@ function Analytics() {
       return;
     }
     setAnimes(data || []);
+
     // ambil
     const total = getTotalAnime(data);
     const avg = getAverageRating(data);
+    const monthly = getThisMonthAnimeCount(data);
+    const topGenresData = getTopGenres(data, 5);
+    const monthlyActivityData = getMonthlyActivity(data);
+    const ratingDist = getRatingDistribution(data);
+    
 
     // pasang
     setTotalAnime(total);
     setAverageRating(avg);
+    setMonthlyCount(monthly);
+    setTopGenres(topGenresData);
+    setMonthlyActivity(monthlyActivityData);
+    setRatingDistribution(ratingDist);
     setLoadingAnimes(false);
+    
   };
-
 
   // DATA
   const DUMMY_STATS = {
     totalAnime: totalAnime,
     averageRating: averageRating,
-    completedThisMonth: 6,
-    uploadBulan: 1,
+    uploadedThisMonth: monthlyCount,
   };
-
-  const DUMMY_GENRES = [
-    { name: "Action", count: 18, color: "bg-blue-500" },
-    { name: "Romance", count: 12, color: "bg-pink-500" },
-    { name: "Comedy", count: 9, color: "bg-amber-500" },
-    { name: "Drama", count: 7, color: "bg-purple-500" },
-    { name: "Fantasy", count: 5, color: "bg-emerald-500" },
-  ];
 
   const DUMMY_ACTIVITY = [
     { week: "Mg 1", added: 3 },
@@ -133,7 +148,7 @@ function Analytics() {
     { week: "Mg 8", added: 8 },
   ];
 
-  const maxGenreCount = DUMMY_GENRES[0].count;
+  const maxGenreCount = Math.max(...topGenres.map(g => g.total), 1);
 
   return (
     <div className="min-h-screen bg-slate-50 font-mono text-slate-900">
@@ -202,7 +217,7 @@ function Analytics() {
                 {DUMMY_STATS.totalAnime}
               </p>
               <p className="mt-3 text-sm text-blue-200">
-                +{DUMMY_STATS.completedThisMonth} anime bulan ini 🎉
+                +{DUMMY_STATS.uploadedThisMonth} anime bulan ini 🎉
               </p>
 
               <div className="mt-6 h-1 w-full rounded-full bg-white/10">
@@ -347,6 +362,8 @@ function Analytics() {
 
         {/* ── BOTTOM GRID: GENRE + CHART ── */}
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-5">
+
+
           {/* TOP GENRES — 2 cols */}
           <div className="xl:col-span-2 rounded-4xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
@@ -357,7 +374,7 @@ function Analytics() {
             </h2>
 
             <div className="space-y-4">
-              {DUMMY_GENRES.map((genre, idx) => (
+              {topGenres.map((genre, index) => (
                 <div
                   key={genre.name}
                   className="group flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50/40"
@@ -365,16 +382,16 @@ function Analytics() {
                   {/* rank badge */}
                   <div
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ${
-                      idx === 0
+                      index === 0
                         ? "bg-blue-600"
-                        : idx === 1
+                        : index === 1
                           ? "bg-blue-400"
-                          : idx === 2
+                          : index === 2
                             ? "bg-blue-300"
                             : "bg-slate-300 text-slate-600"
                     }`}
                   >
-                    #{idx + 1}
+                    #{index + 1}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -383,14 +400,14 @@ function Analytics() {
                         {genre.name}
                       </span>
                       <span className="text-xs font-medium text-slate-400">
-                        {genre.count} anime
+                        {genre.total} anime
                       </span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-slate-200">
                       <div
                         className="h-1.5 rounded-full bg-blue-500 transition-all duration-700"
                         style={{
-                          width: `${(genre.count / maxGenreCount) * 100}%`,
+                          width: `${(genre.total / maxGenreCount) * 100}%`,
                         }}
                       />
                     </div>
@@ -401,7 +418,7 @@ function Analytics() {
 
             {/* Genre pills */}
             <div className="mt-6 flex flex-wrap gap-2">
-              {DUMMY_GENRES.map((g) => (
+              {topGenres.map((g) => (
                 <span
                   key={g.name}
                   className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700"
