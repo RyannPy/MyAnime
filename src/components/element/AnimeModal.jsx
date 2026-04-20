@@ -1,7 +1,7 @@
 import { useState } from "react";
 import GenreBadge from "./GenreBadge";
 import ConfirmModal from "../notification/ConfirmModal";
-import { deleteAnimeById } from "../../services/animeServices";
+import { deleteAnimeWithImage } from "../../services/animeServices";
 import { useToast } from "../../contexts/ToastContexts";
 
 const AnimeModal = ({ anime, isOpen, onClose, onEdit, onDeleted }) => {
@@ -82,7 +82,7 @@ const AnimeModal = ({ anime, isOpen, onClose, onEdit, onDeleted }) => {
           message="Yakin ingin menghapus anime ini? Tindakan ini tidak dapat dibatalkan."
           confirmText="Hapus"
           onConfirm={async () => {
-            const result = await deleteAnimeById(anime.id);
+            const result = await deleteAnimeWithImage(anime);
             if (result?.error) {
               addToast("Gagal menghapus anime.", "error");
             } else {

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { getGenres } from "../services/genreServices";
@@ -10,8 +11,8 @@ import {
   getAnimes,
   createAnime,
   updateAnime,
-  deleteAnimeById,
   setAnimeGenres,
+  deleteImage,
 } from "../services/animeServices";
 
 // AUTH
@@ -36,6 +37,7 @@ const AddAnime = ({ onClose }) => {
   useEffect(() => {
     fetchGenres();
     fetchAnimes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // If parent passes prefill via window (Dashboard will set prefillAnime state and pass here via prop if wired),
@@ -48,7 +50,11 @@ const AddAnime = ({ onClose }) => {
       setTitle(payload.title || "");
       setRating(payload.rating?.toString() || "");
       setReview(payload.review || "");
-      setSelectedGenres((payload.anime_genres || []).map((g) => Number(g.genre_id || g.genres?.id)).filter(Boolean));
+      setSelectedGenres(
+        (payload.anime_genres || [])
+          .map((g) => Number(g.genre_id || g.genres?.id))
+          .filter(Boolean),
+      );
       setExistingImageUrl(payload.image_url || null);
     };
 
@@ -106,7 +112,12 @@ const AddAnime = ({ onClose }) => {
       return;
     }
 
-    if (!title.trim() || !rating.trim() || !review.trim() || selectedGenres.length === 0) {
+    if (
+      !title.trim() ||
+      !rating.trim() ||
+      !review.trim() ||
+      selectedGenres.length === 0
+    ) {
       addToast("Semua field wajib diisi, termasuk genre.", "warning");
       return;
     }
@@ -128,6 +139,11 @@ const AddAnime = ({ onClose }) => {
         setSubmitting(false);
         return;
       }
+
+      if (existingImageUrl) {
+        await deleteImage(existingImageUrl);
+      }
+
       imageUrl = url;
     }
 
@@ -187,31 +203,34 @@ const AddAnime = ({ onClose }) => {
     onClose?.();
   };
 
-
   const editAnime = (item) => {
     setEditId(item.id);
     setTitle(item.title || "");
     setRating(item.rating?.toString() || "");
     setReview(item.review || "");
-    setSelectedGenres((item.anime_genres || []).map((g) => Number(g.genre_id || g.genres?.id)).filter(Boolean));
+    setSelectedGenres(
+      (item.anime_genres || [])
+        .map((g) => Number(g.genre_id || g.genres?.id))
+        .filter(Boolean),
+    );
     setExistingImageUrl(item.image_url || null);
   };
 
-
-  const deleteAnime = async (id) => {
-    await deleteAnimeById(id);
-    fetchAnimes();
-  };
-
+  
   return (
     <div className="space-y-8">
       <div className="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-blue-500/80">Tambah Anime</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Form Tambah Anime</h2>
+            <p className="text-sm uppercase tracking-[0.3em] text-blue-500/80">
+              Tambah Anime
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+              Form Tambah Anime
+            </h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Isi data anime dengan lengkap lalu tekan tombol tambah untuk menyimpan ke koleksi.
+              Isi data anime dengan lengkap lalu tekan tombol tambah untuk
+              menyimpan ke koleksi.
             </p>
           </div>
           <span className="inline-flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
@@ -222,7 +241,9 @@ const AddAnime = ({ onClose }) => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-              <span className="text-sm font-medium text-slate-700">Judul Anime</span>
+              <span className="text-sm font-medium text-slate-700">
+                Judul Anime
+              </span>
               <input
                 type="text"
                 className="mt-3 w-full bg-transparent text-slate-900 outline-none"
@@ -248,7 +269,9 @@ const AddAnime = ({ onClose }) => {
           </div>
 
           <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-            <span className="text-sm font-medium text-slate-700">Review Singkat</span>
+            <span className="text-sm font-medium text-slate-700">
+              Review Singkat
+            </span>
             <textarea
               className="mt-3 w-full bg-transparent text-slate-900 outline-none resize-none"
               rows="4"
@@ -263,7 +286,10 @@ const AddAnime = ({ onClose }) => {
               <span className="text-sm font-medium text-slate-700">Genre</span>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {genres.map((g) => (
-                  <label key={g.id} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-blue-300">
+                  <label
+                    key={g.id}
+                    className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-blue-300"
+                  >
                     <input
                       type="checkbox"
                       value={g.id}
@@ -271,7 +297,9 @@ const AddAnime = ({ onClose }) => {
                       onChange={(e) => {
                         const value = Number(e.target.value);
                         setSelectedGenres((prev) =>
-                          prev.includes(value) ? prev.filter((id) => id !== value) : [...prev, value],
+                          prev.includes(value)
+                            ? prev.filter((id) => id !== value)
+                            : [...prev, value],
                         );
                       }}
                       className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
@@ -283,9 +311,15 @@ const AddAnime = ({ onClose }) => {
             </label>
 
             <label className="block rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-              <span className="text-sm font-medium text-slate-700">Gambar Poster</span>
+              <span className="text-sm font-medium text-slate-700">
+                Gambar Poster
+              </span>
               <div className="mt-3">
-                <ImageUpload file={image} onFileChange={setImage} existingUrl={existingImageUrl} />
+                <ImageUpload
+                  file={image}
+                  onFileChange={setImage}
+                  existingUrl={existingImageUrl}
+                />
               </div>
             </label>
           </div>
@@ -299,7 +333,11 @@ const AddAnime = ({ onClose }) => {
               {submitting && (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               )}
-              {submitting ? "Menyimpan..." : editId ? "Simpan Perubahan" : "Tambah Anime"}
+              {submitting
+                ? "Menyimpan..."
+                : editId
+                  ? "Simpan Perubahan"
+                  : "Tambah Anime"}
             </button>
             {editId && (
               <button

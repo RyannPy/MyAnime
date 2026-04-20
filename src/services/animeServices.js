@@ -84,3 +84,41 @@ export const uploadImage = async (file) => {
 
     return { url: publicUrl.publicUrl };
 };
+
+
+// Delete old image if edit
+export const getFilePathFromUrl = (url) => {
+    if (!url) return null;
+
+    return url.split("/").pop(); // ambil nama file
+};
+
+export const deleteImage = async (imageUrl) => {
+    const filePath = getFilePathFromUrl(imageUrl);
+    if (!filePath) return;
+
+    const { error } = await supabase.storage
+        .from("anime-images")
+        .remove([filePath]);
+
+    if (error) {
+        console.error("DELETE IMAGE ERROR:", error);
+    }
+};
+
+// delete full
+export const deleteAnimeWithImage = async (anime) => {
+    try {
+        // 1. hapus image kalau ada
+        if (anime.image_url) {
+            await deleteImage(anime.image_url);
+        }
+
+        // 2. hapus data
+        return await deleteAnimeById(anime.id);
+
+    } catch (err) {
+        console.error("DELETE FULL ERROR:", err);
+        return { error: err };
+    }
+};
